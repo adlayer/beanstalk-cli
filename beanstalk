@@ -1,0 +1,59 @@
+#!/bin/sh
+agent=beanstalk-cli
+
+command=$1
+value=$2
+
+
+
+function parseJSON(){
+	awk -F"[,:]" '{for(i=1;i<=NF;i++){if($i~/uptime\042/){print $(i+1)} } }' file 527
+}
+
+# $1 = method
+# $2 = path
+# $3 = data
+function request(){
+	curl -i -v \
+		-X ${1} \
+		--user-agent $agent \
+		-H "Accept: application/json" \
+		-H "Content-type: application/json" \
+		-d "$3" \
+		${domain}/api/${2}.json
+}
+
+function auth(){
+	echo 'Account name:'
+	read account
+
+	echo 'Username:'
+	read username
+
+	echo 'Password:'
+	read -s password
+}
+
+function repositories(){
+	request GET repositories
+}
+
+function upload_key(){
+	key=$(cat ~/.ssh/id_rsa.pub)
+	name=$(hostname)
+	data='{"public_key":{"name": "val-name","content": "val-key"}}'
+	## Replacements
+	data=${data/val-name/$name}
+	data=${data/val-key/$key}
+	request POST public_keys "$data"
+}
+
+function main(){
+	echo 'Welcome to Beanstalk-Cli, please give your Beanstalk credentials'
+	echo 'Make sure you have allowed the API access in your Beanstalk Account'
+	auth
+	domain=https://${username}:${password}@${account}.beanstalkapp.com
+	$command
+}
+
+main
