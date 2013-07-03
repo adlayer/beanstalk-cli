@@ -6,3 +6,10 @@ Beanstalk-cli is a working in progress tool to help devops automate the process 
 * Upload client public-key to beanstalk (done)
 * Download beanstalk deployment key and add to knowed_keys
 * Create new users from cli
+
+## Install
+
+````bash
+git clone https://github.com/adlayer/beanstalk-cli.git
+make install
+```
