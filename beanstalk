@@ -34,6 +34,16 @@ function auth(){
 	read -s password
 }
 
+function allow_deploy(){
+	curl -O https://${account}.beanstalkapp.com/beanstalk_rsa.pub
+	cat beanstalk_rsa.pub >> ~/.ssh/authorized_keys
+	rm -rf beanstalk_rsa.pub
+}
+
+function keys(){
+	request GET public_keys
+}
+
 function repositories(){
 	request GET repositories
 }
