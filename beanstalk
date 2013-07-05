@@ -1,21 +1,26 @@
 #!/bin/sh
 agent=beanstalk-cli
 
+# Process ARGV
 command=$1
 value=$2
-
-
-
-function parseJSON(){
-	awk -F"[,:]" '{for(i=1;i<=NF;i++){if($i~/uptime\042/){print $(i+1)} } }' file 527
-}
+data=$3
 
 # $1 = method
 # $2 = path
 # $3 = data
 function request(){
-	curl -i -v \
-		-X ${1} \
+	if [ $1 == GET ]; then
+		curl -G -X ${1} \
+			--user-agent $agent \
+			-H "Accept: application/json" \
+			-H "Content-type: application/json" \
+			-d "$3" \
+			${domain}/api/${2}.json
+		exit
+	fi
+	
+	curl -X ${1} \
 		--user-agent $agent \
 		-H "Accept: application/json" \
 		-H "Content-type: application/json" \
@@ -23,6 +28,7 @@ function request(){
 		${domain}/api/${2}.json
 }
 
+# Baisc Authetication method
 function auth(){
 	echo 'Account name:'
 	read account
@@ -34,20 +40,62 @@ function auth(){
 	read -s password
 }
 
-function allow_deploy(){
-	curl -O https://${account}.beanstalkapp.com/beanstalk_rsa.pub
-	cat beanstalk_rsa.pub >> ~/.ssh/authorized_keys
-	rm -rf beanstalk_rsa.pub
+# List users
+# $value= USER_ID
+function users(){
+	if [ $value ]; then
+		request GET users/${value} | jq '.user' | jq '.name, .email'
+		exit
+	fi
+	request GET users | jq '.[].user' | jq '.id, .name, .email'
 }
 
-function keys(){
-	request GET public_keys
+# Create user using invitations
+function create_user(){
+	name=$value
+	email=$data
+	template='{"invitation":{"user": {"email": "val-email","name": "val-name"}}}'
+	## Replace
+	body=${template/val-email/$email}
+	body=${template/val-name/$name}
+	echo $body
+	##request POST invitations "$body"
 }
 
+# List repositories
+# $value = REPOSITORY_ID
 function repositories(){
-	request GET repositories
+	if [ $value ]; then
+		request GET repositories/${value} | jq '.repository' | jq '.title, .repository_url'
+		exit
+	fi
+	request GET repositories | jq '.[].repository' | jq '.id, .title, .repository_url'
 }
 
+# $value = REPOSITORY_ID
+function envs(){
+	request GET ${value}/server_environments | jq '.[].server_environment' | jq '.id, .name'
+}
+
+# $value = REPOSITORY_ID
+# $data = environament
+function servers(){
+	#request GET ${value}/release_servers/$data
+	#request GET ${value}/release_servers environment_id=${data}
+	echo ${value}/release_servers environment_id=${data}
+}
+
+# List keys
+# $value = KEY_ID
+function keys(){
+	if [ $value ]; then
+		request GET public_keys | jq '.[].public_key' | jq '.name, .content'
+		exit
+	fi
+	request GET public_keys | jq '.[].public_key' | jq '.name, .content'
+}
+
+# Push the key located at ~/.ssh/id_rsa.pub to Beanstalk
 function upload_key(){
 	key=$(cat ~/.ssh/id_rsa.pub)
 	name=$(hostname)
@@ -58,6 +106,14 @@ function upload_key(){
 	request POST public_keys "$data"
 }
 
+# Add generic beanstalk public key as authorized
+function allow_deploy(){
+	curl -O https://${account}.beanstalkapp.com/beanstalk_rsa.pub
+	cat beanstalk_rsa.pub >> ~/.ssh/authorized_keys
+	rm -rf beanstalk_rsa.pub
+}
+
+# Dispatcher method
 function main(){
 	echo 'Welcome to Beanstalk-Cli, please give your Beanstalk credentials'
 	echo 'Make sure you have allowed the API access in your Beanstalk Account'
