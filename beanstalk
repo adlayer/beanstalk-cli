@@ -51,6 +51,8 @@ function users(){
 }
 
 # Create user using invitations
+# $value=name
+# $data=email
 function create_user(){
 	name=$value
 	email=$data
