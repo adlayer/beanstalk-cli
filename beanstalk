@@ -112,18 +112,29 @@ function download_key(){
 
 # Add a key to authorized keys list
 ## $value=path/to/key
-function authorize_key(){
-	if [ "$value" ]; then
-		file=$value
-	else
-		file=$1
-	fi
+function add_local_authorized_key(){
+	file=$1
 	cat $file >> ~/.ssh/authorized_keys
+}
+
+# Download and authorize local key
+## $value=KEY_ID
+function allow_local_key(){
+	file=${value}_id_rsa.pub
+	download_key $value
+	add_local_authorized_key $file
+	rm -rf file
 }
 
 # Push the key located at ~/.ssh/id_rsa.pub to Beanstalk
 function upload_key(){
-	key=$(cat ~/.ssh/id_rsa.pub)
+	if [ "$value" ]; then
+		file=$value
+	else
+		file="$HOME/.ssh/id_rsa.pub"
+	fi
+	
+	key=$(cat $file)
 	name=$(hostname)
 	data='{"public_key":{"name": "val-name","content": "val-key"}}'
 	## Replacements
@@ -135,7 +146,7 @@ function upload_key(){
 # Add generic beanstalk public key as authorized
 function allow_deploy(){
 	curl -O https://${account}.beanstalkapp.com/beanstalk_rsa.pub
-	authorize_key beanstalk_rsa.pub
+	add_local_authorized_key beanstalk_rsa.pub
 	rm -rf beanstalk_rsa.pub
 }
 
