@@ -87,11 +87,11 @@ function servers(){
 	echo ${value}/release_servers environment_id=${data}
 }
 
-# List keys
-# $value = KEY_ID
+# Find All Public Keys
+# $value = USER_ID
 function keys(){
 	if [ $value ]; then
-		request GET public_keys | jq '.[].public_key' | jq '.name, .content'
+		request GET public_keys user_id=${value} | jq '.[].public_key' | jq '.name, .content'
 		exit
 	fi
 	request GET public_keys | jq '.[].public_key' | jq '.name, .content'
