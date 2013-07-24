@@ -97,6 +97,12 @@ function keys(){
 	request GET public_keys | jq '.[].public_key' | jq '.name, .content'
 }
 
+# Find Public Key
+## Admins can view other users’ keys. Regular users can view their own keys only.
+## $value=PUBLIC_KEY_ID
+function key(){
+	request GET public_keys/${value} | jq '.public_key' | jq '.content'
+}
 
 # Push the key located at ~/.ssh/id_rsa.pub to Beanstalk
 function upload_key(){
