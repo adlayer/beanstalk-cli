@@ -74,6 +74,11 @@ function repositories(){
 	request GET repositories | jq '.[].repository' | jq '.id, .title, .repository_url'
 }
 
+# Alias for repositories
+function repos(){
+	repositories
+}
+
 # $value = REPOSITORY_ID
 function envs(){
 	request GET ${value}/server_environments | jq '.[].server_environment' | jq '.id, .name'
