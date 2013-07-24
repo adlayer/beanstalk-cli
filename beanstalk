@@ -94,7 +94,7 @@ function keys(){
 		request GET public_keys user_id=${value} | jq '.[].public_key' | jq '.id, .name, .content'
 		exit
 	fi
-	request GET public_keys | jq '.[].public_key' | jq '.name, .content'
+	request GET public_keys | jq '.[].public_key' | jq '.id, .name, .content'
 }
 
 # Find Public Key
@@ -102,6 +102,18 @@ function keys(){
 ## $value=PUBLIC_KEY_ID
 function key(){
 	request GET public_keys/${value} | jq '.public_key' | jq '.content'
+}
+
+# Download some kye
+## $value=PUBLIC_KEY_ID
+function download_key(){
+	key >> ${value}_id_rsa.pub
+}
+
+# Add a key to authorized keys list
+## $value=path/to/key
+function authorize_key(){
+	cat ${value} >> ~/.ssh/authorized_keys
 }
 
 # Push the key located at ~/.ssh/id_rsa.pub to Beanstalk
