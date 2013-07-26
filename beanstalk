@@ -112,7 +112,7 @@ function key(){
 # Download some kye
 ## $value=PUBLIC_KEY_ID
 function download_key(){
-	key >> ${value}_id_rsa.pub
+	key | sed s/\"//g >> ${value}_id_rsa.pub
 }
 
 # Add a key to authorized keys list
