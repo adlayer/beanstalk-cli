@@ -117,17 +117,17 @@ function download_key(){
 
 # Add a key to authorized keys list
 ## $value=path/to/key
-function add_local_authorized_key(){
+function append_key(){
 	file=$1
 	cat $file >> ~/.ssh/authorized_keys
 }
 
 # Download and authorize local key
 ## $value=KEY_ID
-function allow_local_key(){
+function allow_key(){
 	file=${value}_id_rsa.pub
 	download_key $value
-	add_local_authorized_key $file
+	append_key $file
 	rm -rf file
 }
 
@@ -151,7 +151,7 @@ function upload_key(){
 # Add generic beanstalk public key as authorized
 function allow_deploy(){
 	curl -O https://${account}.beanstalkapp.com/beanstalk_rsa.pub
-	add_local_authorized_key beanstalk_rsa.pub
+	append_key beanstalk_rsa.pub
 	rm -rf beanstalk_rsa.pub
 }
 
