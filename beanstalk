@@ -120,7 +120,8 @@ function download_key(){
 function append_key(){
 	file=$1
 	content=$(cat $file)
-	echo ${content} >> ~/.ssh/authorized_keys
+	content=$(echo -e "\n $content")
+	echo -e "\n"${content} >> ~/.ssh/authorized_keys
 }
 
 # Download and authorize local key
