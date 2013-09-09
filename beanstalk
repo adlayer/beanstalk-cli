@@ -119,7 +119,8 @@ function download_key(){
 ## $value=path/to/key
 function append_key(){
 	file=$1
-	cat $file >> ~/.ssh/authorized_keys
+	content=$(cat $file)
+	echo ${content} >> ~/.ssh/authorized_keys
 }
 
 # Download and authorize local key
